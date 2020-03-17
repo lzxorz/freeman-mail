@@ -11,11 +11,9 @@ import lombok.Setter;
  * @author: 刘志新
  * @email: lzxorz@163.com
  */
-@Getter
-@Setter
-@Builder
+@Getter @Setter @Builder
 @ApiModel(value = "电子邮箱用户", description = "电子邮箱用户")
-public class User extends Model<Email> {
+public class User extends Model<Mail> {
 
     @ApiModelProperty(value = "自增主键", notes = "新增不传,修改要传")
     private Long id;
@@ -26,9 +24,11 @@ public class User extends Model<Email> {
     @ApiModelProperty(value = "客户端授权码，不是邮箱密码", required = true)
     private String password;
     @ApiModelProperty(value = "邮件服务协议")
-    private String protocol;
-    @ApiModelProperty(value = "发送邮件服务器地址")
+    private String protocol="smtp";
+    @ApiModelProperty(value = "发送邮件服务器地址", required = true)
     private String host;
     @ApiModelProperty(value = "发送邮件服务器端口")
-    private int port;
+    private int port=25;
+    @ApiModelProperty(value = "发送邮件服务器SSL端口")
+    private int sslPort=465;
 }

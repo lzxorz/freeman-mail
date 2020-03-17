@@ -14,7 +14,7 @@ import org.hibernate.validator.constraints.Range;
 @Getter
 @Setter
 @ApiModel(value = "附件", description = "邮件附件")
-public class Attachment extends Model<Email> {
+public class Attachment extends Model<Mail> {
 
     @ApiModelProperty(value = "自增主键", notes = "新增不传,修改要传")
     private Long id;

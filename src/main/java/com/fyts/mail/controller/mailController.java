@@ -1,7 +1,7 @@
 package com.fyts.mail.controller;
 
 import com.fyts.mail.common.util.Result;
-import com.fyts.mail.entity.Email;
+import com.fyts.mail.entity.Mail;
 import com.fyts.mail.service.IMailService;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +17,7 @@ public class mailController {
 	private IMailService mailService;
 	
 	@PostMapping("send")
-	public Result send(Email mail) {
+	public Result send(Mail mail) {
 		try {
 			mailService.sendTemplateEmail(mail);
 		} catch (Exception e) {
@@ -28,7 +28,7 @@ public class mailController {
 	}
 	
 	@PostMapping("list")
-	public Result list(Email mail) {
-		return mailService.listMail(mail);
+	public Result list(Mail mail) {
+		return Result.ok("获取成功", mailService.listData(mail));
 	}
 }

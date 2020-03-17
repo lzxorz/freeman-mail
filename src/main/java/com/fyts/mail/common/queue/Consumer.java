@@ -1,9 +1,8 @@
 package com.fyts.mail.common.queue;
 
-import com.fyts.mail.entity.Email;
+import com.fyts.mail.entity.Mail;
 import com.fyts.mail.service.IMailService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -14,19 +13,12 @@ import java.util.concurrent.Executors;
 /**
  * 消费队列
  */
+@Slf4j
 @Component
-public class ConsumeMailQueue {
-	private static final Logger logger = LoggerFactory.getLogger(ConsumeMailQueue.class);
+public class Consumer {
 
 	// @Reference(check = false)
 	IMailService mailService;
-	
-	@PostConstruct
-	public void startThread() {
-		ExecutorService e = Executors.newFixedThreadPool(2);// 两个大小的固定线程池
-		e.submit(new PollMail(mailService));
-		e.submit(new PollMail(mailService));
-	}
 
 	class PollMail implements Runnable {
 		IMailService mailService;
@@ -39,9 +31,9 @@ public class ConsumeMailQueue {
 		public void run() {
 			while (true) {
 				try {
-					Email mail = MailQueue.getMailQueue().consume();
+					Mail mail = MailQueue.getMailQueue().consume();
 					if (mail != null) {
-						logger.info("剩余邮件总数:{}",MailQueue.getMailQueue().size());
+						log.info("剩余邮件总数: {}",MailQueue.getMailQueue().size());
 						mailService.sendSimpleMail(mail);
 					}
 				} catch (Exception e) {
@@ -50,8 +42,16 @@ public class ConsumeMailQueue {
 			}
 		}
 	}
+
+	@PostConstruct
+	public void startThread() {
+		ExecutorService e = Executors.newFixedThreadPool(2);// 固定大小线程池
+		e.submit(new PollMail(mailService));
+		e.submit(new PollMail(mailService));
+	}
+
 	@PreDestroy
 	public void stopThread() {
-		logger.info("destroy");
+		log.info("destroy");
 	}
 }

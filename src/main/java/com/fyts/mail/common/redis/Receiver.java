@@ -3,7 +3,7 @@ package com.fyts.mail.common.redis;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fyts.mail.entity.Email;
+import com.fyts.mail.entity.Mail;
 import com.fyts.mail.service.IMailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +30,9 @@ public class Receiver {
         }else {
         	ObjectMapper mapper = new ObjectMapper();  
 			try {
-				Email email = mapper.readValue(message, Email.class);
-				mailService.sendSimpleMail(email);
-				LOGGER.info("接收email消息内容 <{}>",email.getContent());
+				Mail mail = mapper.readValue(message, Mail.class);
+				mailService.sendSimpleMail(mail);
+				LOGGER.info("接收email消息内容 <{}>", mail.getContent());
 			} catch (JsonParseException e) {
 				e.printStackTrace();
 			} catch (JsonMappingException e) {

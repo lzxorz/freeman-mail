@@ -1,23 +1,28 @@
 package com.fyts.mail.service.impl;
 
 import cn.hutool.extra.template.TemplateEngine;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fyts.mail.common.queue.MailQueue;
 import com.fyts.mail.common.util.Constants;
 import com.fyts.mail.common.util.MailUtil;
 import com.fyts.mail.common.util.Result;
-import com.fyts.mail.entity.Email;
-import com.fyts.mail.mapper.EmailMapper;
+import com.fyts.mail.entity.Mail;
+import com.fyts.mail.mapper.MailMapper;
 import com.fyts.mail.service.IMailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
@@ -29,48 +34,48 @@ import java.util.List;
 @Slf4j
 @Service
 // @Service(version = "1.0.0")
-public class MailServiceImpl extends ServiceImpl<EmailMapper, Email> implements IMailService {
+public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IMailService {
 
-    @Autowired(required = false)
-    private MailUtil mailUtil;
-    @Autowired(required = false)
-    private EmailMapper emailMapper;
+    @Resource
+    private MailMapper mailMapper;
     @Autowired(required = false)
     private TemplateEngine templateEngine;
     @Autowired(required = false)
     private RedisTemplate<String, String> redisTemplate;
-    // @Autowired
-    // private DynamicQuery dynamicQuery;
-
-    static {
-        System.setProperty("mail.mime.splitlongparameters", "false");
-    }
 
 
     /**
      * 简单文本邮件
      */
     @Override
-    public void sendSimpleMail(Email email) {
-        log.info("发送邮件：{}", email.getContent());
+    public void sendSimpleMail(Mail mail) {
+        JavaMailSenderImpl mailSender = mail.getMailSender();
+
         //创建SimpleMailMessage对象
         SimpleMailMessage message = new SimpleMailMessage();
         //邮件发送人
-        // message.setFrom(email.getFrom().getUsername());
+         message.setFrom(mail.getFrom().getUsername());
         //邮件接收人
-        message.setTo(email.getTo());
+        message.setTo(mail.getTo());
         //邮件主题
-        message.setSubject(email.getSubject());
+        message.setSubject(mail.getSubject());
         //邮件内容
-        message.setText(email.getContent());
+        message.setText(mail.getContent());
         //发送时间
         message.setSentDate(new Date());
-        //发送邮件
-        mailUtil.getMailSender().send(message);
-        email.setStatus("ok");
+        try {
+            //发送邮件
+            mailSender.send(message);
+            mail.setStatus("ok");
+            log.info("发送邮件成功：{}->{}", mail.getFrom(), mail.getTo());
+        } catch (MailException e) {
+            e.printStackTrace();
+            log.error("发送邮件失败：{}", e.getMessage());
+            mail.setStatus("error");
+        }
 
-        logger.info("发送邮件成功：{}->{}", mailVo.getFrom(), mailVo.getTo());
-
+        // 保存到数据库
+        save(mail);
 
     }
 
@@ -79,29 +84,18 @@ public class MailServiceImpl extends ServiceImpl<EmailMapper, Email> implements 
      * html邮件
      */
     @Override
-    public void sendHtmlMail(Email email) {
-		mailSender.setDefaultEncoding("UTF-8");
-		mailSender.setHost(email.getFrom().getHost());
-        mailSender.setPort(email.getFrom().getPort());
-		// 是否SSL加密连接
-		/*if (email.getOnSsl() == 2) {
-			Properties properties = new Properties();
-			properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-            mailSender.setJavaMailProperties(properties);
-		}*/
-		// 需要验证邮箱用户名和密码
-		/*if (email.getOnAuth() == 2) {
-			mailSender.setUsername(email.getFrom().getUsername());
-			mailSender.setPassword(email.getFrom().getPassword());
-		}*/
+    public void sendHtmlMail(Mail mail) {
+        JavaMailSenderImpl mailSender = mail.getMailSender();
+
         //获取MimeMessage对象
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;
         try {
             helper = new MimeMessageHelper(message, true);
-            helper.setFrom(email.getFrom().getUsername(), email.getFrom().getNickname());
-            helper.setTo(email.getTo());
-            helper.setSubject(email.getSubject());
+            helper.setFrom(mail.getFrom().getUsername(), mail.getFrom().getNickname());
+            helper.setTo(mail.getTo());
+            helper.setSubject(mail.getSubject());
+            //设置邮件内容，true表示开启HTML文本格式
             helper.setText("<html><body><img src=\"cid:springcloud\" ></body></html>", true);
             // 发送图片
             File file = ResourceUtils.getFile("classpath:static" + Constants.FILE_SEPARATOR + "image" + Constants.FILE_SEPARATOR + "springcloud.png");
@@ -121,23 +115,28 @@ public class MailServiceImpl extends ServiceImpl<EmailMapper, Email> implements 
             helper.addAttachment("附件", file);
 
             // helper.addAttachment("work.docx", new File("xx/xx/work.docx"));
-            if (email.getMultipartFiles() != null) {
-                for (MultipartFile multipartFile : email.getMultipartFiles()) {
+            if (mail.getMultipartFiles() != null) {
+                for (MultipartFile multipartFile : mail.getMultipartFiles()) {
                     helper.addAttachment(multipartFile.getOriginalFilename(), multipartFile);
                 }
             }
 
+            //发送邮件
             mailSender.send(message);
-            //日志信息
-            log.info("邮件已经发送。");
+            mail.setStatus("ok");
+            log.info("发送邮件成功：{}->{}", mail.getFrom(), mail.getTo());
         } catch (MessagingException | UnsupportedEncodingException | FileNotFoundException e) {
-			e.printStackTrace();
-            log.error("发送邮件时发生异常！", e);
+            e.printStackTrace();
+            log.error("发送邮件失败：{}", e.getMessage());
+            mail.setStatus("error");
         }
+
+        // 保存到数据库
+        save(mail);
     }
 
     @Override
-    public void sendTemplateEmail(Email email) {
+    public void sendTemplateEmail(Mail mail) {
         // MimeMessagePreparator messagePreparator = mimeMessage -> {
         // 	MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
         //
@@ -149,20 +148,21 @@ public class MailServiceImpl extends ServiceImpl<EmailMapper, Email> implements 
         // } catch (MailException e) {
         // 	// runtime exception; compiler will not force you to handle it
         // }
+        JavaMailSenderImpl mailSender = mail.getMailSender();
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;
         try {
             helper = new MimeMessageHelper(message, true);
-            helper.setFrom(email.getFrom().getUsername(), email.getFrom().getNickname());
-            helper.setTo(email.getTo());
-            helper.setSubject(email.getSubject());
+            helper.setFrom(mail.getFrom().getUsername(), mail.getFrom().getNickname());
+            helper.setTo(mail.getTo());
+            helper.setSubject(mail.getSubject());
 
-            String text = templateEngine.getTemplate(email.getTemplate()).render(email.getKvMap());
+            String text = templateEngine.getTemplate(mail.getTemplate()).render(mail.getKvMap());
 
             helper.setText(text, true);
 			mailSender.send(message);
-			emailMapper.insert(email);
+			mailMapper.insert(mail);
         } catch (MessagingException | UnsupportedEncodingException e) {
             e.printStackTrace();
 			log.error("发送邮件时发生异常！", e);
@@ -171,7 +171,7 @@ public class MailServiceImpl extends ServiceImpl<EmailMapper, Email> implements 
 
 
     @Override
-    public void sendQueue(Email mail) {
+    public void sendQueue(Mail mail) {
 		try {
 			MailQueue.getMailQueue().produce(mail);
 		} catch (InterruptedException e) {
@@ -180,14 +180,15 @@ public class MailServiceImpl extends ServiceImpl<EmailMapper, Email> implements 
 	}
 
     @Override
-    public void sendRedisQueue(Email mail) {
+    public void sendRedisQueue(Mail mail) {
         redisTemplate.convertAndSend("mail", mail);
     }
 
     @Override
-    public List<Email> listData(Email mail) {
-        List<Email> list = emailMapper.selectList(null);
-        return Result.ok("", list);
+    public List<Mail> listData(Mail mail) {
+        LambdaQueryWrapper<Mail> queryWrapper = new QueryWrapper<Mail>().lambda()
+                .eq(Mail::getStatus, mail.getStatus());
+        return mailMapper.selectList(queryWrapper);
     }
 
 

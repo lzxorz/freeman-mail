@@ -3,8 +3,6 @@ package com.fyts.mail.common.util;
 import com.fyts.mail.entity.User;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -22,25 +20,26 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author: 刘志新
  * @email: lzxorz@163.com
  */
-@Slf4j
-@Setter
-@Component
+@Slf4j @Setter @Component
 public class MailUtil {
-    private /*static*/ String defaultEncoding = "Utf-8";
-    private /*static*/ Map<Long, JavaMailSenderImpl> pool = new HashMap<>();
-    private /*static*/ List<Long> ids = new ArrayList<>();
-    private /*static*/ int currentIndex = 0;
+    private static String defaultEncoding = "Utf-8";
+    private static int timeOut = 1000;
+    private static Map<Long, JavaMailSenderImpl> pool = new HashMap<>();
+    private static List<Long> ids = new ArrayList<>();
+    private static int currentIndex = 0;
 
+    static {
+        System.setProperty("mail.mime.splitlongparameters", "false");// linux默认为 true，会截断附件名
+    }
 
     // @PostConstruct
     public void init(List<User> users) {
-        log.info("加载mailSender......");
+        log.info("初始化mailSender缓冲池......");
         for (User user : users) {
             JavaMailSenderImpl mailSender = createMailSender(user);
 
             ids.add(user.getId());
             pool.put(user.getId(), mailSender);
-            // 查询数据库....
         }
     }
 
@@ -49,30 +48,40 @@ public class MailUtil {
      * @author 刘志新
      * @email  lzxorz@163.com
      */
-    public JavaMailSenderImpl createMailSender(User user) {
+    public static JavaMailSenderImpl createMailSender(User user) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(user.getHost());
         mailSender.setPort(user.getPort());
+        mailSender.setDefaultEncoding(defaultEncoding);
+        //需要验证发件人邮箱信息，username表示用户邮箱，password表示对应邮件授权码
         mailSender.setUsername(user.getUsername());
         mailSender.setPassword(user.getPassword());
-        mailSender.setDefaultEncoding(defaultEncoding);
+
         Properties p = new Properties();
-        p.setProperty("mail.smtp.timeout",  "1000");
-        // p.setProperty("mail.smtp.auth","true");
-        p.setProperty("mail.debug", "true");
+        p.put("mail.smtp.timeout",  timeOut);//设置链接超时
+        // p.put("mail.debug", "true");//启用调试
+        p.put("mail.smtp.auth","true");//开启认证 让邮箱服务器 认证 用户名和密码是否正确
+        p.put("mail.smtp.starttls.enable", true);
+        p.put("mail.smtp.port", Integer.toString(user.getPort()));//设置端口
+        p.put("mail.smtp.socketFactory.port", Integer.toString(user.getSslPort()));//设置SSL端口
+        p.put("mail.smtp.socketFactory.fallback", "false");
+        p.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");//SSL加密连接
         mailSender.setJavaMailProperties(p);
         return mailSender;
     }
+
     /**
      * 从缓冲池中获取一个MailSender
      * @author 刘志新
      * @email  lzxorz@163.com
      */
-    public JavaMailSenderImpl getMailSender(){
+    public static JavaMailSenderImpl getMailSender(){
         if (!CollectionUtils.isEmpty(pool) && !CollectionUtils.isEmpty(ids) && pool.size()==ids.size()){
             if (!(currentIndex<ids.size())) currentIndex = 0;
+            log.info("缓冲池获取MailSender...");
             return pool.get(ids.get(currentIndex++));
         }
+        log.info("获取MailSender失败...");
         return null;
     }
 
@@ -87,28 +96,22 @@ public class MailUtil {
     private final AtomicInteger count = new AtomicInteger(1);
 
     public void start(final JavaMailSender mailSender,final SimpleMailMessage message) {
-        service.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (count.get() == 2) {
-                        service.shutdown();
-                        log.info("the task is down");
-                    }
-                    log.info("start send email and the index is " + count);
-                    mailSender.send(message);
-                    log.info("send email success");
-                }catch (Exception e){
-                    log.error("send email fail" , e);
+        service.execute(() -> {
+            try {
+                if (count.get() == 2) {
+                    service.shutdown();
+                    log.info("the task is down");
                 }
-
+                log.info("start send email and the index is " + count);
+                mailSender.send(message);
+                log.info("send email success");
+            } catch (Exception e) {
+                log.error("send email fail", e);
             }
         });
     }
     public void startHtml(final JavaMailSender mailSender,final MimeMessage message) {
-        service.execute(new Runnable() {
-            @Override
-            public void run() {
+        service.execute(() -> {
                 try {
                     if (count.get() == 2) {
                         service.shutdown();
@@ -120,8 +123,6 @@ public class MailUtil {
                 }catch (Exception e){
                     log.error("send email fail" , e);
                 }
-
-            }
         });
     }
 

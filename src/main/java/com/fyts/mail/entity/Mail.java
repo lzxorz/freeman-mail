@@ -1,28 +1,28 @@
 package com.fyts.mail.entity;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fyts.mail.common.util.MailUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 
 /**
  * Email封装类
  */
-@Getter
-@Setter
+@Getter @Setter @Slf4j
 @ApiModel(value = "邮件", description = "邮件对象")
-public class Email extends Model<Email> {
+public class Mail extends Model<Mail> {
 
     @ApiModelProperty(value = "自增主键", notes = "新增不传,修改要传")
     private Long id;
@@ -58,30 +58,38 @@ public class Email extends Model<Email> {
 
 
 
-    public Email() {
+    public Mail() {
         super();
     }
 
-    public static Email buildSimpleMail(User from, String[] to, String subject, String content) {
-        final Email email = new Email();
-        email.from = from;
-        email.to = to;
-        email.subject = subject;
-        email.content = content;
-        email.sentDate = new Date();
-        return email;
+    public static Mail buildSimpleMail(User from, String[] to, String subject, String content) {
+        final Mail mail = new Mail();
+        mail.from = from;
+        mail.to = to;
+        mail.subject = subject;
+        mail.content = content;
+        mail.sentDate = new Date();
+        return mail;
     }
 
-    public static Email buildTemplateMail(User from, String[] to, String subject, String content, String template, HashMap<String, String> kvMap) {
-        final Email email = new Email();
-        email.from = from;
-        email.to = to;
-        email.subject = subject;
-        email.content = content;
-        email.template = template;
-        email.kvMap = kvMap;
-        email.sentDate = new Date();
-        return email;
+    public static Mail buildTemplateMail(User from, String[] to, String subject, String content, String template, HashMap<String, String> kvMap) {
+        final Mail mail = new Mail();
+        mail.from = from;
+        mail.to = to;
+        mail.subject = subject;
+        mail.content = content;
+        mail.template = template;
+        mail.kvMap = kvMap;
+        mail.sentDate = new Date();
+        return mail;
+    }
+
+    public JavaMailSenderImpl getMailSender(){
+        if (from!=null && StrUtil.isNotBlank(from.getHost()) && StrUtil.isNotBlank(from.getUsername()) && StrUtil.isNotBlank(from.getPassword())){
+            log.info("前端传入MailSender...");
+            return MailUtil.createMailSender(from);
+        }
+        return MailUtil.getMailSender();
     }
 
 }
