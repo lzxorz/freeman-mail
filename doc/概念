@@ -1,0 +1,84 @@
+首先了解几个概念。
+
+什么是SMTP？
+
+SMTP全称为Simple Mail Transfer Protocol（简单邮件传输协议），它是一组用于从源地址到目的地址传输邮件的规范，通过它来控制邮件的中转方式。SMTP认证要求必须提供账号和密码才能登陆服务器，其设计目的在于避免用户受到垃圾邮件的侵扰。
+
+什么是IMAP？
+
+IMAP全称为Internet Message Access Protocol（互联网邮件访问协议），IMAP允许从邮件服务器上获取邮件的信息、下载邮件等。IMAP与POP类似，都是一种邮件获取协议。
+
+什么是POP3？
+
+POP3全称为Post Office Protocol 3（邮局协议），POP3支持客户端远程管理服务器端的邮件。POP3常用于“离线”邮件处理，即允许客户端下载服务器邮件，然后服务器上的邮件将会被删除。目前很多POP3的邮件服务器只提供下载邮件功能，服务器本身并不删除邮件，这种属于改进版的POP3协议。
+
+IMAP和POP3协议有什么不同呢？
+
+两者最大的区别在于，IMAP允许双向通信，即在客户端的操作会反馈到服务器上，例如在客户端收取邮件、标记已读等操作，服务器会跟着同步这些操作。而对于POP协议虽然也允许客户端下载服务器邮件，但是在客户端的操作并不会同步到服务器上面的，例如在客户端收取或标记已读邮件，服务器不会同步这些操作。
+
+
+ Spring框架中用于Java邮件支持的接口和类组织如下：
+
+ MailSender interface：发送简单基础电子邮件的顶级接口；
+ JavaMailSender interface：是MailSender的子接口。它支持MIME消息，并且主要与MimeMessageHelper类一起用于创建MimeMessage。建议在此接口实现类JavaMailSenderImpl中使用MimeMessagePreparator机制；
+ JavaMailSenderImpl class：实现了JavaMailSender 的接口，它支持MimeMessage和SimpleMailMessage；
+ SimpleMailMessage class：用于创建简单的邮件消息，包括from，to，cc，subject和text字段；
+ MimeMessagePreparator interface：提供一个回调接口，用于编写MIME消息；
+ MimeMessageHelper class：用于创建MIME消息的帮助类。它为HTML布局中的图像，典型邮件附件和文本内容提供支持。
+
+
+ #  1. 基础知识
+ #
+ #  　　A. smtp(简单邮件传输协议)：smtp是Simple Mail Transfer Protocol缩写，它是一组用于从源地址到目的地址传输邮件的规范，通过它来控制邮件的中转方式，smtp认证要求必须提供账号和密码才能登陆服务器，其目的是避免用户受到垃圾邮件的干扰
+ #
+ #  　　B. pop3(邮局协议)：pop3是Post Office Protocol 3缩写，支持客户端远程管理服务器端的邮件
+ #
+ #  　　C. smtp服务器地址：网易163/QQ/126/sina/aliyun邮箱 ——> smtp.163.com/smtp.qq.com/ smtp.126.com/smtp.sina.com/ smtp.aliyun.com
+ #
+ #  　　D. 邮件分简单邮件和复杂邮件，复杂邮件有html格式邮件、带附件格式邮件、带静态资源邮件、基于Freemarker模板的邮件
+ #  3. 邮箱信息配置
+ #
+ #  　　A. application.properties文件配置
+ #
+ #  　　B. 前端传输参数动态配置
+ #
+ #  　　注意：若使用配置文件设置邮箱信息，可使用JavaMailSender接口发送邮件；若动态配置邮箱信息，需使用JavaMailSenderImpl实现类发送邮件；它们是Java后端发送邮件和集成邮件服务的主流工具。
+ ##网易系(126/163/yeah)邮箱配置
+ #spring:
+ #  mail:
+ #    host: smtp.126.com #发送邮件服务器
+ #    username: xx@126.com #发送邮件的邮箱地址
+ #    password: xxxxxxx #客户端授权码，不是邮箱密码,网易的是自己设置的
+ #    properties.mail.smtp.port: 994 #465或者994
+ #    from: xxx@126.com # 发送邮件的地址，和上面username一致
+ #    可以任意
+ #    properties.mail.smtp.starttls.enable: true
+ #    properties.mail.smtp.starttls.required: true
+ #    properties.mail.smtp.ssl.enable: true
+ #    default-encoding: utf-8
+
+ #spring:
+ #  mail:
+ #    host: smtp.163.com # 发件服务器
+ #    username: coderxm@163.com # 账号
+ #    password: xxxx # 密码（163需要授权第三方登录密码，请查看设置-客户端授权码密码开通）
+ #    port: 465
+ #    protocol: smtp
+ #    default-encoding: utf-8
+ #    # 下面这些配置大家不用深究，主要用于配置ssl
+ #    properties:
+ #      mail:
+ #        imap:
+ #          ssl:
+ #            socketFactory:
+ #              fallback: false
+ #        smtp:
+ #          auth: true
+ #          ssl:
+ #            enable: true
+ #            socketFactory:
+ #              class: com.fintech.modules.base.util.mail.MailSSLSocketFactory
+ #          starttls:
+ #            enable: true
+ #            required: true
+ #      test-connection: false
