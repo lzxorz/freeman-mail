@@ -13,7 +13,7 @@ import lombok.Setter;
  */
 @Getter @Setter @Builder
 @ApiModel(value = "电子邮箱用户", description = "电子邮箱用户")
-public class User extends Model<Mail> {
+public class MailAccount extends Model<Mail> {
 
     @ApiModelProperty(value = "自增主键", notes = "新增不传,修改要传")
     private Long id;

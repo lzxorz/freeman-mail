@@ -19,7 +19,7 @@ public class mailController {
 	@PostMapping("send")
 	public Result send(Mail mail) {
 		try {
-			mailService.sendTemplateEmail(mail);
+			mailService.sendHtmlMail(mail);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return  Result.error();

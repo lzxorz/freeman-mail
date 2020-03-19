@@ -1,19 +1,13 @@
 package com.fyts.mail.common.util;
 
-import com.fyts.mail.entity.User;
+import com.fyts.mail.entity.MailAccount;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import javax.mail.internet.MimeMessage;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 异步发送
@@ -33,13 +27,13 @@ public class MailUtil {
     }
 
     // @PostConstruct
-    public void init(List<User> users) {
+    public void init(List<MailAccount> mailAccounts) {
         log.info("初始化mailSender缓冲池......");
-        for (User user : users) {
-            JavaMailSenderImpl mailSender = createMailSender(user);
+        for (MailAccount mailAccount : mailAccounts) {
+            JavaMailSenderImpl mailSender = createMailSender(mailAccount);
 
-            ids.add(user.getId());
-            pool.put(user.getId(), mailSender);
+            ids.add(mailAccount.getId());
+            pool.put(mailAccount.getId(), mailSender);
         }
     }
 
@@ -48,22 +42,22 @@ public class MailUtil {
      * @author 刘志新
      * @email  lzxorz@163.com
      */
-    public static JavaMailSenderImpl createMailSender(User user) {
+    public static JavaMailSenderImpl createMailSender(MailAccount mailAccount) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(user.getHost());
-        mailSender.setPort(user.getPort());
+        mailSender.setHost(mailAccount.getHost());
+        mailSender.setPort(mailAccount.getPort());
         mailSender.setDefaultEncoding(defaultEncoding);
         //需要验证发件人邮箱信息，username表示用户邮箱，password表示对应邮件授权码
-        mailSender.setUsername(user.getUsername());
-        mailSender.setPassword(user.getPassword());
+        mailSender.setUsername(mailAccount.getUsername());
+        mailSender.setPassword(mailAccount.getPassword());
 
         Properties p = new Properties();
         p.put("mail.smtp.timeout",  timeOut);//设置链接超时
         // p.put("mail.debug", "true");//启用调试
         p.put("mail.smtp.auth","true");//开启认证 让邮箱服务器 认证 用户名和密码是否正确
         p.put("mail.smtp.starttls.enable", true);
-        p.put("mail.smtp.port", Integer.toString(user.getPort()));//设置端口
-        p.put("mail.smtp.socketFactory.port", Integer.toString(user.getSslPort()));//设置SSL端口
+        p.put("mail.smtp.port", Integer.toString(mailAccount.getPort()));//设置端口
+        p.put("mail.smtp.socketFactory.port", Integer.toString(mailAccount.getSslPort()));//设置SSL端口
         p.put("mail.smtp.socketFactory.fallback", "false");
         p.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");//SSL加密连接
         mailSender.setJavaMailProperties(p);
@@ -91,7 +85,7 @@ public class MailUtil {
     }*/
 
 
-    private ScheduledExecutorService service = Executors.newScheduledThreadPool(6);
+    /*private ScheduledExecutorService service = Executors.newScheduledThreadPool(6);
 
     private final AtomicInteger count = new AtomicInteger(1);
 
@@ -104,9 +98,9 @@ public class MailUtil {
                 }
                 log.info("start send email and the index is " + count);
                 mailSender.send(message);
-                log.info("send email success");
+                log.info("邮件发送成功");
             } catch (Exception e) {
-                log.error("send email fail", e);
+                log.error("邮件发送失败", e);
             }
         });
     }
@@ -119,11 +113,11 @@ public class MailUtil {
                     }
                     log.info("start send email and the index is " + count);
                     mailSender.send(message);
-                    log.info("send email success");
+                    log.info("邮件发送成功");
                 }catch (Exception e){
-                    log.error("send email fail" , e);
+                    log.error("邮件发送失败" , e);
                 }
         });
-    }
+    }*/
 
 }

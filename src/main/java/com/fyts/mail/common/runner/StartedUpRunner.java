@@ -2,8 +2,8 @@ package com.fyts.mail.common.runner;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fyts.mail.common.util.MailUtil;
-import com.fyts.mail.entity.User;
-import com.fyts.mail.mapper.UserMapper;
+import com.fyts.mail.entity.MailAccount;
+import com.fyts.mail.mapper.MailAccountMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -27,7 +27,7 @@ public class StartedUpRunner implements ApplicationRunner/*, CommandLineRunner*/
 
     private int initSize = 100;
     @Resource
-    private UserMapper userMapper;
+    private MailAccountMapper mailAccountMapper;
     @Autowired
     private MailUtil mailUtil;
 
@@ -38,8 +38,8 @@ public class StartedUpRunner implements ApplicationRunner/*, CommandLineRunner*/
     public void run(ApplicationArguments args) {
         try {
             log.info("系统启动 ······");
-            final Page<User> page = new Page<>(1,initSize);
-            final Page<User> userPage = userMapper.selectPage(page, null);
+            final Page<MailAccount> page = new Page<>(1,initSize);
+            final Page<MailAccount> userPage = mailAccountMapper.selectPage(page, null);
             mailUtil.init(userPage.getRecords());
 
             if (context.isActive()) {

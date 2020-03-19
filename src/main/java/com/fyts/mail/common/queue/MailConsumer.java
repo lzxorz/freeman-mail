@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 @Component
-public class Consumer {
+public class MailConsumer {
 
 	// @Reference(check = false)
 	IMailService mailService;

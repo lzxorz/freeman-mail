@@ -1,13 +1,16 @@
 package com.fyts.mail.service.impl;
 
+import cn.hutool.extra.template.Template;
 import cn.hutool.extra.template.TemplateEngine;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONPath;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fyts.mail.common.queue.MailQueue;
 import com.fyts.mail.common.util.Constants;
-import com.fyts.mail.common.util.MailUtil;
-import com.fyts.mail.common.util.Result;
 import com.fyts.mail.entity.Mail;
 import com.fyts.mail.mapper.MailMapper;
 import com.fyts.mail.service.IMailService;
@@ -18,6 +21,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -85,6 +89,19 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
      */
     @Override
     public void sendHtmlMail(Mail mail) {
+////////////////////////////////////////////////////////////////////////////////
+//         MimeMessagePreparator messagePreparator = mimeMessage -> {
+//         	MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
+//
+//         	String content = mailContentBuilder.build(info);
+//         	helper.setText(content,true);
+//         };
+//         try {
+//         	emailSender.send(messagePreparator);
+//         } catch (MailException e) {
+//         	// runtime exception; compiler will not force you to handle it
+//         }
+////////////////////////////////////////////////////////////////////////////////
         JavaMailSenderImpl mailSender = mail.getMailSender();
 
         //获取MimeMessage对象
@@ -95,6 +112,12 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
             helper.setFrom(mail.getFrom().getUsername(), mail.getFrom().getNickname());
             helper.setTo(mail.getTo());
             helper.setSubject(mail.getSubject());
+
+
+            String templatejs = templateEngine.getTemplate("templates/" + mail.getTemplate()+".js").toString();
+            JSONArray params = (JSONArray)JSONPath.read(templatejs,"$.param[?(@.type = 'img')]");
+            String text = templateEngine.getTemplate(mail.getTemplate()).render(mail.getKvMap());
+
             //设置邮件内容，true表示开启HTML文本格式
             helper.setText("<html><body><img src=\"cid:springcloud\" ></body></html>", true);
             // 发送图片
@@ -115,11 +138,11 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
             helper.addAttachment("附件", file);
 
             // helper.addAttachment("work.docx", new File("xx/xx/work.docx"));
-            if (mail.getMultipartFiles() != null) {
-                for (MultipartFile multipartFile : mail.getMultipartFiles()) {
-                    helper.addAttachment(multipartFile.getOriginalFilename(), multipartFile);
-                }
-            }
+//            if (mail.getMultipartFiles() != null) {
+//                for (MultipartFile multipartFile : mail.getMultipartFiles()) {
+//                    helper.addAttachment(multipartFile.getOriginalFilename(), multipartFile);
+//                }
+//            }
 
             //发送邮件
             mailSender.send(message);
@@ -134,41 +157,6 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
         // 保存到数据库
         save(mail);
     }
-
-    @Override
-    public void sendTemplateEmail(Mail mail) {
-        // MimeMessagePreparator messagePreparator = mimeMessage -> {
-        // 	MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
-        //
-        // 	String content = mailContentBuilder.build(info);
-        // 	helper.setText(content,true);
-        // };
-        // try {
-        // 	emailSender.send(messagePreparator);
-        // } catch (MailException e) {
-        // 	// runtime exception; compiler will not force you to handle it
-        // }
-        JavaMailSenderImpl mailSender = mail.getMailSender();
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper;
-        try {
-            helper = new MimeMessageHelper(message, true);
-            helper.setFrom(mail.getFrom().getUsername(), mail.getFrom().getNickname());
-            helper.setTo(mail.getTo());
-            helper.setSubject(mail.getSubject());
-
-            String text = templateEngine.getTemplate(mail.getTemplate()).render(mail.getKvMap());
-
-            helper.setText(text, true);
-			mailSender.send(message);
-			mailMapper.insert(mail);
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            e.printStackTrace();
-			log.error("发送邮件时发生异常！", e);
-        }
-    }
-
 
     @Override
     public void sendQueue(Mail mail) {

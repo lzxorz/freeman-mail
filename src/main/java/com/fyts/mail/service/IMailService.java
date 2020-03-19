@@ -18,9 +18,6 @@ public interface IMailService extends IService<Mail> {
 	/** 发送富文本邮件 */
 	void sendHtmlMail(Mail mail);
 
-	/** 发送模版邮件 */
-	void sendTemplateEmail(Mail mail);
-
 	/** 队列 */
 	void sendQueue(Mail mail);
 
