@@ -16,6 +16,8 @@ import com.fyts.mail.mapper.MailMapper;
 import com.fyts.mail.service.IMailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
@@ -23,17 +25,23 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -112,37 +120,45 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
             helper.setFrom(mail.getFrom().getUsername(), mail.getFrom().getNickname());
             helper.setTo(mail.getTo());
             helper.setSubject(mail.getSubject());
-
-
-            String templatejs = templateEngine.getTemplate("templates/" + mail.getTemplate()+".js").toString();
-            JSONArray params = (JSONArray)JSONPath.read(templatejs,"$.param[?(@.type = 'img')]");
+            
+            Template template = templateEngine.getTemplate("templates/" + mail.getTemplate()+".html");
             String text = templateEngine.getTemplate(mail.getTemplate()).render(mail.getKvMap());
-
             //设置邮件内容，true表示开启HTML文本格式
-            helper.setText("<html><body><img src=\"cid:springcloud\" ></body></html>", true);
-            // 发送图片
-            File file = ResourceUtils.getFile("classpath:static" + Constants.FILE_SEPARATOR + "image" + Constants.FILE_SEPARATOR + "springcloud.png");
-            helper.addInline("springcloud", file);
+            helper.setText(text, true);
 
-            //可以添加多个图片
-            // String rscPath, String rscId)
-            // FileSystemResource res = new FileSystemResource(new File(rscPath));
-            // helper.addInline(rscId,res);
-            helper.addInline("doge.gif", new File("xx/xx/doge.gif"));
+            // 添加图片
+            Map<String,String> kvMap = mail.getKvMap();
+            String metaData = "";
+            BufferedReader br = null;
+            try {
+                br = new BufferedReader(new InputStreamReader(new ClassPathResource("templates/" + mail.getTemplate()+".json").getInputStream()));
+                StringBuilder sb = new StringBuilder();
+                for(String s = "";(s = br.readLine()) != null; ) {
+                    sb.append(s);
+                }
+                metaData = sb.toString();
+            } catch (IOException e) {
+                e.printStackTrace();
+                log.error("读取模板元数据出错...");
+            }
+            JSONArray params = (JSONArray)JSONPath.read(metaData,"$.param[?(@.type = 'img')]");
+            //可以添加多个模板需要的图片
+            if(!CollectionUtils.isEmpty(params) && !CollectionUtils.isEmpty(kvMap)){
+                for (int i = 0; i < params.size(); i++) {
+                    final String cid = params.getJSONObject(i).getString("cid");
+                    if(kvMap.containsKey(cid)){
+                        final String rscPath = kvMap.get(cid);
+                        // helper.addInline(cid, ResourceUtils.getFile("classpath:static" + Constants.FILE_SEPARATOR + "image" + Constants.FILE_SEPARATOR + "xxx.png"));
+                        helper.addInline(cid, new FileSystemResource(new File(rscPath)));
+                    }
+                }
+            }
+           
+            // 发送附件
 
             // String filePath
             // helper.addAttachment(filePath.substring(filePath.lastIndexOf(File.separator), new FileSystemResource(new File(filePath)));
 
-            // 发送附件
-            file = ResourceUtils.getFile("classpath:static" + Constants.FILE_SEPARATOR + "file" + Constants.FILE_SEPARATOR + "测试文件.zip");
-            helper.addAttachment("附件", file);
-
-            // helper.addAttachment("work.docx", new File("xx/xx/work.docx"));
-//            if (mail.getMultipartFiles() != null) {
-//                for (MultipartFile multipartFile : mail.getMultipartFiles()) {
-//                    helper.addAttachment(multipartFile.getOriginalFilename(), multipartFile);
-//                }
-//            }
 
             //发送邮件
             mailSender.send(message);

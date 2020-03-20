@@ -42,12 +42,16 @@ public class Mail extends Model<Mail> {
 
     @ApiModelProperty(value = "模板", notes = "使用模板,需要传入kvMap")
 	private String template;
-    @ApiModelProperty(value = "模板参数", notes = "kvMap")
-    private HashMap<String, String> kvMap;
+    @ApiModelProperty(value = "模板参数", notes ="模板图片: key为metaData中的cid,value为调用上传文件接口返回的路径;\n"+
+                                                "模板变量: key为metaData中的key,value为实际的变量值;\n")
+    private HashMap<String, Object> kvMap;
 
-    @ApiModelProperty(value = "发送状态")
+    @ApiModelProperty(value = "附件Ids", notes = "发送邮件,无论成功或失败,都要持久化保存到数据库,附件ID用英文逗号拼接", hidden = true)
+    private String attachmentIds;
+
+    @ApiModelProperty(value = "发送状态", notes = "发送邮件,无论成功或失败,都要持久化保存到数据库,发送成功值为ok,发送失败值为error")
     private String status;
-    @ApiModelProperty(value = "发送错误消息")
+    @ApiModelProperty(value = "发送错误消息", notes = "发送失败时的异常消息")
     private String error;
 
 

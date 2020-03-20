@@ -1,13 +1,18 @@
 package com.fyts.mail.controller;
 
 import com.fyts.mail.common.util.FileUtil;
+import com.fyts.mail.entity.Attachment;
+import com.fyts.mail.service.IAttachmentService;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,21 +27,28 @@ import java.util.List;
 @Api(tags={"文件上传接口"})
 public class UploadController {
 
-
 	Logger logger = LoggerFactory.getLogger(getClass());
 
+	@Autowired
+	private IAttachmentService attachmentService;
+
+
+	@PostMapping("md5")
+	@ApiOperation(value="文件上传前传入MD5值检查是否存在相同文件", notes="文件上传前传入MD5值检查是否存在相同文件,如果有: 生成新的附件表记录, 返回路径, 不再需要调用上传文件接口")
+	public List<Map<String, Object>> checkMd5(@RequestBody List<Attachment> attachments){
+		return attachmentService.checkMd5(attachments);
+	}
 
 	@PostMapping("single")
-	@ApiOperation(value="单个文件上传", notes="上传单个文件，并返回路径")
+	@ApiOperation(value="单个文件上传", notes="上传单个文件,并返回路径,前置接口: /mail/upload/md5")
 	public String singleUpload(@ApiParam(value = "所需上传文件",required = true) MultipartFile file,
 							   @ApiParam(name="dirName", value = "上传文件的目录(接口对象名)",required = true) String dirName){
-
 		return  upload(file,dirName);
 	}
 
 
 	@PostMapping("batch")
-	@ApiOperation(value="批量文件上传", notes="上传批量文件，并返回路径列表")
+	@ApiOperation(value="批量文件上传", notes="上传批量文件,并返回路径列表,前置接口: /mail/upload/md5")
 	public List<String> batchUpload(@ApiParam(name = "file", value="文件数据", allowMultiple=true,required=true) HttpServletRequest request,
 									@ApiParam(name = "file1", value = "所需上传文件(该处仅供swagger测试使用，具体开发需要上传files属性)",required = false) MultipartFile file1,
 									@ApiParam(name = "file2", value = "所需上传文件(该处仅供swagger测试使用，具体开发需要上传files属性)",required = false) MultipartFile file2,
