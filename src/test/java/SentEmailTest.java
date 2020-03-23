@@ -1,4 +1,4 @@
-import com.fyts.mail.EmailApplication;
+import com.fyts.mail.MailApplication;
 import com.fyts.mail.entity.Mail;
 import com.fyts.mail.entity.MailAccount;
 import com.fyts.mail.service.IMailService;
@@ -13,16 +13,16 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @email: lzxorz@163.com
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = EmailApplication.class)
-public class EmailTest {
+@SpringBootTest(classes = MailApplication.class)
+public class SentEmailTest {
     @Autowired
     private IMailService emailService;
 
     @Test
     public void testSimple(){
-        final MailAccount mailAccount = MailAccount.builder().protocol("smtp").host("smtp.163.com").port(25).username("lzxorz@163.com").password("YYERDRDYTDLHWQGG").nickname("O(∩_∩)O哈哈~").build();
-        final Mail mail = Mail.buildSimpleMail(mailAccount, new String[]{"594685906@qq.com"}, "测试简单邮件", "简单邮件内容");
-        emailService.sendSimpleMail(mail);
+        // final MailAccount mailAccount = MailAccount.builder().protocol("smtp").serverHost("smtp.163.com").serverPort(25).username("lzxorz@163.com").password("YYERDRDYTDLHWQGG").name("O(∩_∩)O哈哈~").build();
+        // final Mail mail = Mail.buildSimpleMail(mailAccount, new String[]{"594685906@qq.com"}, "测试简单邮件", "简单邮件内容");
+        // emailService.sendSimpleMail(mail);
     }
 
     /*@Test

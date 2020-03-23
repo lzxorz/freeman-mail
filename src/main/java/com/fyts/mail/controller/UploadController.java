@@ -19,8 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/mail/upload")
@@ -28,6 +32,12 @@ import java.util.List;
 public class UploadController {
 
 	Logger logger = LoggerFactory.getLogger(getClass());
+	/** 获取系统当前的文件存储方式 */
+	@Value("${tools.file.storage}")
+	private String storage;
+	/** 获取系统当前的文件存储方式 */
+	@Value("${tools.file.prefixPlaceholder}")
+	private String placeholder;
 
 	@Autowired
 	private IAttachmentService attachmentService;
@@ -43,7 +53,16 @@ public class UploadController {
 	@ApiOperation(value="单个文件上传", notes="上传单个文件,并返回路径,前置接口: /mail/upload/md5")
 	public String singleUpload(@ApiParam(value = "所需上传文件",required = true) MultipartFile file,
 							   @ApiParam(name="dirName", value = "上传文件的目录(接口对象名)",required = true) String dirName){
-		return  upload(file,dirName);
+		final String md5 = getMd5(file);
+		String filePath = upload(file,dirName);
+		final Attachment attachment = new Attachment();
+		attachment.setMd5(md5);
+		attachment.setCreateDate(new Date());
+		attachment.setName(file.getOriginalFilename());
+		attachment.setPath(filePath);
+		attachment.setType(filePath.substring(filePath.lastIndexOf(".")+1));
+		attachmentService.save(attachment);
+		return  /*placeholder+*/filePath;
 	}
 
 
@@ -57,18 +76,14 @@ public class UploadController {
 		List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("files");
 
 		List<String> filePaths = new ArrayList<String>();
+		String filePath;
 		for (MultipartFile multipartFile : files) {
-			filePaths.add(upload(multipartFile,dirName));
+			filePath = upload(multipartFile,dirName);
+			filePaths.add(/*placeholder+*/filePath);
 		}
 		return filePaths;
 	}
 
-
-	/**
-	 * 获取系统当前的文件存储方式
-	 */
-	@Value("${tools.file.storage}")
-	private String storage;
 
 	/**
 	 * 根据不同方式处理文件上传（方法放的位置不太好，后期可能会调整）
@@ -85,6 +100,26 @@ public class UploadController {
 			default:
 				return null;
 		}
+	}
+
+	/**
+	 * 获取上传文件的md5
+	 * @param file
+	 */
+	private String getMd5(MultipartFile file) {
+
+		try {
+			byte[] uploadBytes = file.getBytes();
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+			byte[] digest = md5.digest(uploadBytes);
+			String hashString = new BigInteger(1, digest).toString(16);
+			return hashString;
+		} catch (Exception e) {
+			e.printStackTrace();
+			// logger.error(e.toString(), e);
+		}
+		return null;
+
 	}
 
 }

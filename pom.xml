@@ -93,11 +93,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
+
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
@@ -119,15 +115,15 @@
             <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
             <version>2.5.4</version>
         </dependency>-->
-        <!--<dependency>
+        <dependency>
             <groupId>p6spy</groupId>
             <artifactId>p6spy</artifactId>
-            <version>${p6spy.version}</version>
-        </dependency>-->
+             <version>${p6spy.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <!--<optional>true</optional>-->
+            <optional>true</optional>
             <version>${lombok.version}</version>
         </dependency>
         <!--fastjson-->

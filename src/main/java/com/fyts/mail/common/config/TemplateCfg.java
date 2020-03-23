@@ -1,7 +1,5 @@
 package com.fyts.mail.common.config;
 
-import cn.hutool.core.lang.Dict;
-import cn.hutool.extra.template.Template;
 import cn.hutool.extra.template.TemplateConfig;
 import cn.hutool.extra.template.TemplateEngine;
 import cn.hutool.extra.template.TemplateUtil;

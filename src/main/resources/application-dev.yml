@@ -1,16 +1,31 @@
-spring:
-  profiles:
-    active: dev
+server:
+  #path: http://localhost:8080
+  servlet:
+    #项目contextPath
+    context-path: /
+    #session最大超时时间(分钟)，默认为30
+    session:
+      timeout: 60
+  #服务端口
+  port: 8080
+  #session-timeout: 60
+  tomcat:
+    #tomcat最大线程数，默认为200
+    max-threads: 200
+    uri-encoding: UTF-8
 
 #logging:
-#  config: classpath:log/logback-spring.xml
-#  file:
-#    path: D:/nmyslog/nmys
+#  config: classpath:logback-spring.xml
+#  level:
+#    root: debug
+  #file:
+    #path: D:/nmyslog/nmys
 
-
+spring:
   # DataSource Config
   datasource:
-    url: jdbc:mysql://localhost:3306/email?characterEncoding=utf8&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/mail?useUnicode=true&characterEncoding=UTF8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+    #driver-class-name: com.p6spy.engine.spy.P6SpyDriver
     driver-class-name: com.mysql.cj.jdbc.Driver  # mysql8.0以前使用com.mysql.jdbc.Driver
     username: root
     password: lzx123
@@ -50,17 +65,40 @@ spring:
         reset-enable: true
         login-username: admin
         login-password: XXXX
+  # Redis
+  redis:
+    # 数据库索引（默认为0）
+    database: 0
+    # 服务器地址 变更为自己的
+    host: localhost
+    # 服务器连接端口
+    port: 6379
+    # 服务器连接密码（默认为空）如果有变更为自己的
+    password: lzx123
+    # 连接超时时间（毫秒）
+    timeout: 30000
+    lettuce:
+      pool:
+        # 连接池最大连接数（使用负值表示没有限制）
+        max-active: 8
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: -1ms
+        # 连接池中的最大空闲连接
+        max-idle: 8
+
 mybatis-plus:
   # MyBatis 配置文件位置，如果您有单独的 MyBatis 配置，请将其路径配置到 configLocation 中。
   # config-location: classpath:mybatis-config.xml
   # MyBatis Mapper 所对应的 XML 文件位置，如果您在 Mapper 中有自定义方法
-  mapper-locations: classpath:mapper/mybatisplus/**/*.xml
+  mapper-locations: classpath:mapper/**/*.xml
   # MyBaits 别名包扫描路径，通过该属性可以给包中的类注册别名 实体扫描，多个package用逗号或者分号分隔
-  type-aliases-package:  cn.net.conet.mybatisplus.entity
+  type-aliases-package:  com.fyts.mail.entity
+  #TypeHandler 扫描路径，如果配置了该属性，SqlSessionFactoryBean 会把该包下面的类注册为对应的 TypeHandler
+  type-handlers-package: com.fyts.mail.common.typehandler
   #  # 配置扫描通用枚举 # 支持统配符 * 或者 ; 分割
-  type-enums-package: com.abbottliu.sys.enums,com.abbottliu.enums
+  #type-enums-package: com.abbottliu.sys.enums,com.abbottliu.enums
   # 启动时是否检查 MyBatis XML 文件的存在，默认不检查
-  check-config-location: false
+  check-config-location: off
   #  ExecutorType.SIMPLE：该执行器类型不做特殊的事情，为每个语句的执行创建一个新的预处理语句（PreparedStatement）
   #  ExecutorType.REUSE：该执行器类型会复用预处理语句（PreparedStatement）
   #  ExecutorType.BATCH：该执行器类型会批量执行所有的更新语句
@@ -71,31 +109,41 @@ mybatis-plus:
     #配置JdbcTypeForNull, oracle数据库必须配置
     jdbc-type-for-null: null
   global-config:
-    #驼峰下划线转换
-    column-underline: true
+    banner: off
     db-config:
-      #      数据库类型,默认值为未知的数据库类型
-      #      db-type: mysql
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-    banner: false
+      #  数据库类型,默认值为未知的数据库类型
+      #db-type: mysql
+      logic-delete-field: del_flag  #全局逻辑删除字段值 3.3.0开始支持，详情看下面。
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+      id-type: auto
 
-#  注意：
-#    126邮箱SMTP服务器地址:smtp.126.com,端口号:465或者994
-#    163邮箱SMTP服务器地址:smtp.163.com,端口号:465或者994
-#    yeah邮箱SMTP服务器地址:smtp.yeah.net,端口号:465或者994
+# 特别注意：我们通过添加 spring-boot-starter-activemq 依赖即可默认采用内嵌的activeMQ，在生产环境下个人认为尽量还是采用外部服务，提高扩展性和维护性。
+# activemq 基础配置
+#spring: activemq: broker-url: tcp://47: 94: 232: 109:61616
+# 生产环境设置密码
+#spring: activemq: user: admin
+#spring: activemq: password: 123456
+#spring: activemq: in-memory: true
+#spring: activemq: pool: enabled: false
 
-## QQ邮箱配置
-#spring:
-#  mail:
-#    host: smtp.qq.com #发送邮件服务器
-#    username: 1016767658@qq.com #发送邮件的邮箱地址
-#    password:  ivhkrc*****kbdcf #客户端授权码，不是邮箱密码，这个在qq邮箱设置里面自动生成的
-#    properties.mail.smtp.port: 465 #端口号465或587
-#    from: 1016767658@qq.com # 发送邮件的地址，和上面username一致
-#  可以任意
-#  properties.mail.smtp.starttls.enable: true
-#  properties.mail.smtp.starttls.required: true
-#  properties.mail.smtp.ssl.enable: true
-#  default-encoding: utf-8
+#nacos: config: server-addr: 47: 104: 197: 9:8848
+#dubbo: application: name :  spring-boot-mail
+#dubbo: registry: address :  nacos://47: 104: 197: 9:8848
+#dubbo: protocol: name: dubbo
+#dubbo: protocol: port: -1
+
+
+
+tools:
+  #文件上传配置
+  file:
+    storage: local     # 可选：local, oss, ftp
+    # 存在数据库中的占位符
+    prefixPlaceholder: '#@&@#'
+    prefix: http://localhost/files
+    #prefix: http://fengyangts.oss-cn-beijing.aliyuncs.com/
+    local:
+      path: /home/lzx/Desktop/temp
+
 

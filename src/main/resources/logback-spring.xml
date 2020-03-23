@@ -27,7 +27,7 @@
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <!--此日志appender是为开发使用，只配置最底级别，控制台输出的日志级别是大于或等于此级别的日志信息-->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>info</level>
+            <level>debug</level>
         </filter>
         <encoder>
             <Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
@@ -162,7 +162,6 @@
         第二种就是单独给dao下目录配置debug模式，代码如下，这样配置sql语句会打印，其他还是正常info级别：
      -->
 
-
     <!--
         root节点是必选节点，用来指定最基础的日志输出级别，只有一个level属性
         level:用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，
@@ -172,10 +171,19 @@
 
     <!--开发环境:打印控制台-->
     <springProfile name="dev">
-        <logger name="com.fyts.mail" level="debug"/>
+        <logger name="com.fyts.mail" level="debug" />
+        <logger name="org.mybatis" level="DEBUG"/>
+        <logger name="org.apache.ibatis" level="DEBUG" />
+        <logger name="org.apache.ibatis.common.jdbc.SimpleDataSource" level="DEBUG" />
+        <logger name="org.apache.ibatis.common.jdbc.ScriptRunner" level="DEBUG" />
+        <logger name="org.apache.ibatis.sqlmap.engine.impl.SqlMapClientDelegate" level="DEBUG" />
+        <logger name="java.sql.Connection" level="DEBUG" />
+        <logger name="java.sql.Statement" level="DEBUG" />
+        <logger name="java.sql.PreparedStatement" level="DEBUG" />
     </springProfile>
 
-    <root level="info">
+
+    <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="DEBUG_FILE"/>
         <appender-ref ref="INFO_FILE"/>

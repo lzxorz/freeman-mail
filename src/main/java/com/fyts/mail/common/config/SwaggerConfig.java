@@ -1,4 +1,4 @@
-package com.fyts.api.common.config;
+package com.fyts.mail.common.config;
 
 import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import com.google.common.base.Function;
@@ -7,7 +7,6 @@ import com.google.common.base.Predicate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration;
 import springfox.documentation.RequestHandler;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -59,7 +58,7 @@ public class SwaggerConfig {
                 .select()
                 // .apis(RequestHandlerSelectors.withClassAnnotation(ApiSwagger.class))
                 // .apis(RequestHandlerSelectors.basePackage("com.fyts.api"))
-                .apis(basePackage("com.fyts.api;com.fyts.core.common.util"))
+                .apis(basePackage("com.fyts.mail.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .globalOperationParameters(pars) ;

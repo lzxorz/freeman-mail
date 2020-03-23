@@ -1,12 +1,20 @@
 package com.fyts.mail.common.util;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONPath;
+import com.fyts.mail.common.queue.MailQueue;
+import com.fyts.mail.entity.Mail;
 import com.fyts.mail.entity.MailAccount;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 /**
@@ -44,8 +52,8 @@ public class MailUtil {
      */
     public static JavaMailSenderImpl createMailSender(MailAccount mailAccount) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(mailAccount.getHost());
-        mailSender.setPort(mailAccount.getPort());
+        mailSender.setHost(mailAccount.getServerHost());
+        mailSender.setPort(mailAccount.getServerPort());
         mailSender.setDefaultEncoding(defaultEncoding);
         //需要验证发件人邮箱信息，username表示用户邮箱，password表示对应邮件授权码
         mailSender.setUsername(mailAccount.getUsername());
@@ -56,8 +64,8 @@ public class MailUtil {
         // p.put("mail.debug", "true");//启用调试
         p.put("mail.smtp.auth","true");//开启认证 让邮箱服务器 认证 用户名和密码是否正确
         p.put("mail.smtp.starttls.enable", true);
-        p.put("mail.smtp.port", Integer.toString(mailAccount.getPort()));//设置端口
-        p.put("mail.smtp.socketFactory.port", Integer.toString(mailAccount.getSslPort()));//设置SSL端口
+        p.put("mail.smtp.port", Integer.toString(mailAccount.getServerPort()));//设置端口
+        p.put("mail.smtp.socketFactory.port", Integer.toString(mailAccount.getServerSslPort()));//设置SSL端口
         p.put("mail.smtp.socketFactory.fallback", "false");
         p.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");//SSL加密连接
         mailSender.setJavaMailProperties(p);
@@ -79,12 +87,35 @@ public class MailUtil {
         return null;
     }
 
+    public static JSONArray getMetaDataByTemplate(String template) {
+        JSONArray result = null;
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new ClassPathResource("templates/" + template+".json").getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            for(String s = "";(s = br.readLine()) != null; ) {
+                sb.append(s);
+            }
+            result = (JSONArray) JSONPath.read(sb.toString(), "$.params[?(@.type = 'img')]");
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("读取模板元数据出错...");
+        }
+        return result;
+    }
+
     /*@PreDestroy
     public void destroy(){
         log.info("系统运行结束.....");
     }*/
 
-
+    public static void sendQueue(Mail mail) {
+        try {
+            MailQueue.getMailQueue().produce(mail);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            log.error("邮件ID: {} push到队列失败, 异常消息: {}", mail.getId(), e.getMessage());
+        }
+    }
     /*private ScheduledExecutorService service = Executors.newScheduledThreadPool(6);
 
     private final AtomicInteger count = new AtomicInteger(1);

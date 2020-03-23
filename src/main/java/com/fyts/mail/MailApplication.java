@@ -19,11 +19,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 //必须配置包扫描、否则Dubbo无法注册服务
 // @EnableDubbo(scanBasePackages  = "com.fyts.mail.service.impl")
 @MapperScan("com.fyts.mail.mapper")
-public class EmailApplication {
-	private static final Logger logger = LoggerFactory.getLogger(EmailApplication.class);
+public class MailApplication {
+	private static final Logger logger = LoggerFactory.getLogger(MailApplication.class);
 	
 	public static void main(String[] args){
-		SpringApplication.run(EmailApplication.class, args);
-		logger.info("邮件服务项目启动");
+		SpringApplication.run(MailApplication.class, args);
 	}
 }

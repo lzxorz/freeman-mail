@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fyts.mail.mapper.MailMapper">
+
+    <!-- 通用查询结果列-->
+    <sql id="columns">
+		m.id,
+		m.user_id,
+		m.sender,
+		m.receiver,
+		m.cc,
+		m.bcc,
+		m.subject,
+		m.sent_date,
+		m.ctype,
+		m.content,
+		m.template,
+		m.params,
+		m.attachments,
+		m.status,
+		m.error,
+		m.retry_times,
+		m.create_by,
+		m.create_date,
+		m.update_by,
+		m.update_date,
+		m.del_flag
+    </sql>
+
+	<resultMap id="baseResult" type="com.fyts.mail.entity.Mail">
+		<id column="id" property="id"/>
+		<result column="user_id" property="userId"/>
+		<result column="sender" property="sender" jdbcType="VARCHAR"  typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
+		<result column="receiver" property="receiver" typeHandler="com.fyts.mail.common.typehandler.StringArrayTypeHandler"/>
+		<result column="cc" property="cc" typeHandler="com.fyts.mail.common.typehandler.StringArrayTypeHandler"/>
+		<result column="bcc" property="bcc" typeHandler="com.fyts.mail.common.typehandler.StringArrayTypeHandler"/>
+		<result column="subject" property="subject"/>
+		<result column="sent_date" property="sentDate"/>
+		<result column="ctype" property="ctype"/>
+		<result column="content" property="content"/>
+		<result column="template" property="template"/>
+		<result column="params" property="params" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
+		<result column="attachments" property="attachments" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
+		<result column="status" property="status"/>
+		<result column="error" property="error"/>
+		<result column="retry_times" property="retryTimes"/>
+<!--		<result column="create_by" property="createBy"/>-->
+		<result column="create_date" property="createDate"/>
+<!--		<result column="update_by" property="updateBy"/>-->
+		<result column="update_date" property="updateDate"/>
+		<result column="del_flag" property="delFlag"/>
+	</resultMap>
+    
+    <!-- 关联查询语句-->
+    <sql id="join">
+
+	</sql>
+    
+ 	<!-- 通用查询条件-->
+    <sql id="searchsql">
+    	<!--<if test="openId != null and openId !=''">
+    	  	AND	u.open_id = #{openId}
+    	</if>
+    	<if test="companyId != null">
+    	  	AND	u.company_id = #{companyId}
+    	</if>
+    	<if test="nickname != null and nickname !=''">
+    	  	AND	u.nickname LIKE CONCAT('%',#{nickname},'%')
+    	</if>
+    	<if test="phone != null and phone !=''">
+    	  	AND	r.phone = #{phone}
+    	</if>
+    	<if test="status != null and status !=''">
+    	  	AND	u.status = #{status}
+    	</if>-->
+    </sql>
+
+     <!-- 通用查询列表-->
+    <select id="selectList" resultMap="baseResult">
+        SELECT
+        	<include refid="columns"/> 
+        FROM
+        	mail AS m
+        <include refid="join"/>
+        <where>  
+        	<include refid="searchsql"/>
+		    AND m.del_flag='0'
+        </where>
+    </select>
+	<select id="selectSentList" resultMap="baseResult">
+		SELECT
+		<include refid="columns"/>
+		FROM
+		mail AS m
+		WHERE
+		(m.sent_date <![CDATA[<=]]> #{sentDate} AND m.status = #{statusSent})
+		or
+		(m.status = #{statusError} AND retry_times <![CDATA[<]]> #{retryTimes})
+		AND m.del_flag='0'
+	</select>
+
+</mapper>

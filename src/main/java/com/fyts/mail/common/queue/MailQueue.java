@@ -18,7 +18,7 @@ public class MailQueue {
     /**
      * 私有的默认构造子，保证外界无法直接实例化
      */
-    private MailQueue(){};
+    private MailQueue(){}
 
     /**
      * 静态内部类，延迟加载

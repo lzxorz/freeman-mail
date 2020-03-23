@@ -3,6 +3,7 @@ package com.fyts.mail.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fyts.mail.entity.Mail;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -11,18 +12,23 @@ import java.util.List;
  * @email  lzxorz@163.com
  */
 public interface IMailService extends IService<Mail> {
+	boolean save(Mail mail);
+
+    boolean send(Long id, Date sentDate);
+
+	// List<Mail> listData(Mail mail);
 
 	/** 发送纯文本邮件 */
-	void sendSimpleMail(Mail mail);
+	boolean sendSimpleMail(Mail mail);
 
 	/** 发送富文本邮件 */
-	void sendHtmlMail(Mail mail);
+	boolean sendHtmlMail(Mail mail);
 
 	/** 队列 */
-	void sendQueue(Mail mail);
+	// void sendQueue(Mail mail);
 
 	/** Redis 队列 */
-	void sendRedisQueue(Mail mail);
+	// void sendRedisQueue(Mail mail);
 
-	List<Mail> listData(Mail mail);
+
 }

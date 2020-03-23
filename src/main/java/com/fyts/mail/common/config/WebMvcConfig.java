@@ -122,7 +122,7 @@ public class WebMvcConfig implements WebMvcConfigurer{
         registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
         // 直接在浏览器访问：根目录/swagger-ui.html
         registry.addResourceHandler("/swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("doc.html").addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
         // 需要用到的webjars（包含js、css等）
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
         // registry.addResourceHandler("/files/**").addResourceLocations("file:"+filepath+"/"); //"file:/home/lzx/tempFiles/"
