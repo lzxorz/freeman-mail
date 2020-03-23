@@ -1,13 +1,22 @@
 ### 常见邮箱端口
 
-网易
+网易smtp服务器地址：
 163邮箱
-POP3：pop.126.com
-SMTP：smtp.126.com
+POP3：pop.163.com
+SMTP：smtp.163.com
 SMTP端口号：25
 126邮箱
 POP3：pop.126.com
 SMTP：smtp.126.com
+SMTP端口号：25
+
+QQ邮箱
+POP3：pop.qq.com
+SMTP：smtp.qq.com
+SMTP端口号：25 （使用SSL时，端口号465或587）
+
+阿里云邮箱
+SMTP：smtp.aliyun.com
 SMTP端口号：25
 
 新浪
@@ -24,11 +33,6 @@ SMTP端口号：25
 POP3：pop.sohu.com
 SMTP：smtp.sohu.com
 SMTP端口号：25
-
-QQ邮箱
-POP3：pop.qq.com
-SMTP：smtp.qq.com
-SMTP端口号：25 （使用SSL时，端口号465或587）
 
 雅虎邮箱
 POP3：pop.mail.yahoo.cn
