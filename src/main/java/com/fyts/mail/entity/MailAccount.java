@@ -22,6 +22,8 @@ public class MailAccount extends Model<MailAccount> {
     @ApiModelProperty(value = "自增主键", notes = "新增不传,修改要传")
     @TableId
     private Long id;
+    @ApiModelProperty(value = "添加邮箱账号的用户ID")
+    private Long userId;
     @ApiModelProperty(value = "用户名称")
     private String name;
     @ApiModelProperty(value = "邮箱地址", required = true)

@@ -25,6 +25,8 @@ public class Attachment extends Model<Attachment> {
     @ApiModelProperty(value = "自增主键", notes = "新增不传,修改要传")
     @TableId/*(value = "id",type = IdType.AUTO)*/
     private Long id;
+    @ApiModelProperty(value = "上传附件的用户ID")
+    private Long userId;
     @ApiModelProperty(value = "附件md5值(相同MD5值的文件只保存一份,再次上传只是生成一条附件数据记录,实现秒传)", required = true)
     @NotBlank @Length(min = 16, max = 32)
     private String md5;
