@@ -1,0 +1,33 @@
+{
+  "attachments": [{
+    "md5": "7e2766b501121c798edf66ca3105b0fe",
+    "name": "深度截图",
+    "path": "/test/20200322/20200322224758onuce.png",
+    "sort": 1,
+    "type": "png"
+  }],
+  "bcc": ["liuzxde@13.com"],
+  "cc": ["liuzxde@13.com"],
+  "content": "Java邮件",
+  "params": {
+    "img1": "/test/20200322/20200322224758onuce.png",
+    "img2": "C20200322224758onuce.png",
+    "username": "mingzi",
+    "gender": "nana"
+  },
+  "template": "demo",
+  "receiver": ["594685906@qq.com", "1633615454@qq.com"],
+  "sender": {
+    "host": "smtp.163.com",
+    "password": "YYERDRDYTDLHWQGG",
+    "port": 25,
+    "protocol": "smtp",
+    "name": "O(∩_∩)O哈哈~",
+    "username": "lzxorz@163.com"
+  },
+  "sentDate": "2020-03-22 23:11:10",
+  "status": "2",
+  "ctype": "2",
+  "subject": "java开发者大会",
+  "userId": 1
+}

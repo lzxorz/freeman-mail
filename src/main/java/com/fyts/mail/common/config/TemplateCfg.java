@@ -5,16 +5,20 @@ import cn.hutool.extra.template.TemplateEngine;
 import cn.hutool.extra.template.TemplateUtil;
 import cn.hutool.extra.template.engine.enjoy.EnjoyEngine;
 import com.jfinal.template.Engine;
+import com.jfinal.template.Template;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author: 刘志新
  * @email: lzxorz@163.com
  */
-@Configurable
+@Configuration
 public class TemplateCfg {
 
+    /*
+    // Hutool 封装过的
     @Bean
     public TemplateEngine templateEngine() {
         //自动根据用户引入的模板引擎库的jar来自动选择使用的引擎
@@ -28,11 +32,22 @@ public class TemplateCfg {
 
         // Template template = engine.getTemplate("templates/demo.html");
         // String result = template.render(Dict.create().set("name", "Hutool"));//Dict本质上为Map，此处可用Map
-
-        if (engine instanceof EnjoyEngine){
-            ((Engine)engine).setDevMode(true);
-        }
         return engine;
+    }*/
+
+    // jfnail enjoy 模板引擎
+    @Bean
+    public Engine templateEngine() {
+        // 创建一个 Engine 对象并进行配置
+        Engine forEmail = Engine.create("forEmail");
+        // 支持模板热加载，绝大多数生产环境下也建议配置成 true，除非是极端高性能的场景
+        forEmail.setToClassPathSourceFactory();
+        forEmail.setBaseTemplatePath("templates");
+        forEmail.setDevMode(true);
+        // 配置极速模式，性能提升 13%
+        forEmail.setFastMode(true);
+
+        return forEmail;
     }
 
 

@@ -37,10 +37,6 @@ public class MailTask {
 	@Scheduled(cron="0 0/1 * * * ?")
 	public void sendMail() {
 		log.info("----------执行邮件定时任务 begin----------");
-		/*final QueryWrapper<Mail> queryWrapper = new QueryWrapper<Mail>()
-				.le("sent_date", new Date()).eq("status", Constants.MAIL_STATUS.SENT.value())
-				.or(q -> q.eq("status", Constants.MAIL_STATUS.ERROR.value()).lE("retry_times", retryTimes));*/
-
 		final List<Mail> mails = mailMapper.selectSentList(new Date(), Constants.MAIL_STATUS.SENT.value(), Constants.MAIL_STATUS.ERROR.value(), retryTimes);
 		if (!CollectionUtils.isEmpty(mails)) {
 			for (Mail mail : mails) {

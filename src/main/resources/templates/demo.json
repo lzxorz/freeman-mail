@@ -1,1 +1,23 @@
-{"name" : "demo", "params" : [{"type": "img", "resId": "img1"}, {"type": "img", "resId": "img2"}, {"type": "str", "label": "姓名", "key": "username"}, {"type": "str", "label": "性别", "key": "gender"}]}
+{
+  "name": "demo",
+  "params": [
+    {
+      "type": "img",
+      "resId": "img1"
+    },
+    {
+      "type": "img",
+      "resId": "img2"
+    },
+    {
+      "type": "str",
+      "label": "姓名",
+      "key": "username"
+    },
+    {
+      "type": "str",
+      "label": "性别",
+      "key": "gender"
+    }
+  ]
+}

@@ -4,6 +4,9 @@ import cn.hutool.extra.template.TemplateConfig;
 import cn.hutool.extra.template.TemplateEngine;
 import cn.hutool.extra.template.TemplateUtil;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.support.spring.FastJsonJsonView;
+import com.alibaba.fastjson.support.spring.FastJsonViewResponseBodyAdvice;
+import com.alibaba.fastjson.support.spring.annotation.FastJsonView;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -15,6 +18,7 @@ import com.fyts.mail.entity.Attachment;
 import com.fyts.mail.entity.Mail;
 import com.fyts.mail.mapper.MailMapper;
 import com.fyts.mail.service.IMailService;
+import com.jfinal.template.Engine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +56,7 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
     private String rootPath ;
 
     @Autowired(required = false)
-    private TemplateEngine templateEngine;
+    private Engine templateEngine;
     // @Autowired(required = false)
     // private RedisTemplate<String, String> redisTemplate;
 
@@ -91,7 +95,7 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
      */
     @Override
     public boolean sendSimpleMail(Mail mail) {
-        JavaMailSenderImpl mailSender = mail.getMailSender();
+        JavaMailSenderImpl mailSender = mail.getMailSender().getJavaMailSender();
 
         //创建SimpleMailMessage对象
         SimpleMailMessage message = new SimpleMailMessage();
@@ -127,23 +131,22 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
      */
     @Override
     public boolean sendHtmlMail(Mail mail) {
-////////////////////////////////////////////////////////////////////////////////
-//         MimeMessagePreparator messagePreparator = mimeMessage -> {
-//         	MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
-//
-//         	String content = mailContentBuilder.build(info);
-//         	helper.setText(content,true);
-//         };
-//         try {
-//         	emailSender.send(messagePreparator);
-//         } catch (MailException e) {
-//         	// runtime exception; compiler will not force you to handle it
-//         }
-////////////////////////////////////////////////////////////////////////////////
-        JavaMailSenderImpl mailSender = mail.getMailSender();
-
+        ////////////////////////////////////////////////////////////////////////////////
+        // MimeMessagePreparator messagePreparator = mimeMessage -> {
+        //     MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
+        //
+        //     String content = mailContentBuilder.build(info);
+        //     helper.setText(content,true);
+        // };
+        // try {
+        //     emailSender.send(messagePreparator);
+        // } catch (MailException e) {
+        //     // runtime exception; compiler will not force you to handle it
+        // }
+        ////////////////////////////////////////////////////////////////////////////////
+        MailUtil.MailSenderContainer mailSender = mail.getMailSender();
         //获取MimeMessage对象
-        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessage message = mailSender.getJavaMailSender().createMimeMessage();
         MimeMessageHelper helper;
         try {
             helper = new MimeMessageHelper(message, true);
@@ -152,9 +155,7 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
             helper.setSubject(mail.getSubject());
 
             //模板html文件
-            final TemplateConfig config = new TemplateConfig("templates", TemplateConfig.ResourceMode.CLASSPATH);
-            TemplateEngine engine = TemplateUtil.createEngine(config);
-            String text = engine.getTemplate( mail.getTemplate()+".html").render(mail.getParams());
+            String text = templateEngine.getTemplate( mail.getTemplate()+".html").renderToString(mail.getParams());
             //设置邮件内容，true表示开启HTML文本格式
             helper.setText(text, true);
 
@@ -180,7 +181,7 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
             }
 
             //发送邮件
-            mailSender.send(message);
+            mailSender.getJavaMailSender().send(message);
             mail.setStatus(Constants.MAIL_STATUS.OK.value());
             log.info("发送邮件成功：{}->{}", mail.getSender(), mail.getReceiver());
         } catch (MessagingException | UnsupportedEncodingException e) {
@@ -209,12 +210,6 @@ public class MailServiceImpl extends ServiceImpl<MailMapper, Mail> implements IM
         redisTemplate.convertAndSend("mail", mail);
     }*/
 
-    /*@Override
-    public List<Mail> listData(Mail mail) {
-        LambdaQueryWrapper<Mail> queryWrapper = new QueryWrapper<Mail>().lambda()
-                .eq(Mail::getStatus, mail.getStatus());
-        return mailMapper.selectList(queryWrapper);
-    }*/
 
 
 }

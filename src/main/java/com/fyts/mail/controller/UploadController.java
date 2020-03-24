@@ -69,8 +69,6 @@ public class UploadController {
 	@PostMapping("batch")
 	@ApiOperation(value="批量文件上传", notes="上传批量文件,并返回路径列表,前置接口: /mail/upload/md5")
 	public List<String> batchUpload(@ApiParam(name = "file", value="文件数据", allowMultiple=true,required=true) HttpServletRequest request,
-									@ApiParam(name = "file1", value = "所需上传文件(该处仅供swagger测试使用，具体开发需要上传files属性)",required = false) MultipartFile file1,
-									@ApiParam(name = "file2", value = "所需上传文件(该处仅供swagger测试使用，具体开发需要上传files属性)",required = false) MultipartFile file2,
 									@ApiParam(name = "dirName", value = "上传文件的目录(接口对象名)",required = true) String dirName){
 
 		List<MultipartFile> files = ((MultipartHttpServletRequest) request).getFiles("files");

@@ -2,12 +2,14 @@ package com.fyts.mail.common.util;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONPath;
+import com.alibaba.fastjson.support.spring.FastJsonContainer;
 import com.fyts.mail.common.queue.MailQueue;
 import com.fyts.mail.entity.Mail;
 import com.fyts.mail.entity.MailAccount;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -26,7 +28,7 @@ import java.util.*;
 public class MailUtil {
     private static String defaultEncoding = "Utf-8";
     private static int timeOut = 1000;
-    private static Map<Long, JavaMailSenderImpl> pool = new HashMap<>();
+    private static Map<Long, MailSenderContainer> pool = new HashMap<>();
     private static List<Long> ids = new ArrayList<>();
     private static int currentIndex = 0;
 
@@ -38,10 +40,10 @@ public class MailUtil {
     public void init(List<MailAccount> mailAccounts) {
         log.info("初始化mailSender缓冲池......");
         for (MailAccount mailAccount : mailAccounts) {
-            JavaMailSenderImpl mailSender = createMailSender(mailAccount);
+            MailSenderContainer mailSenderContainer = createMailSender(mailAccount);
 
             ids.add(mailAccount.getId());
-            pool.put(mailAccount.getId(), mailSender);
+            pool.put(mailAccount.getId(), mailSenderContainer);
         }
     }
 
@@ -50,7 +52,10 @@ public class MailUtil {
      * @author 刘志新
      * @email  lzxorz@163.com
      */
-    public static JavaMailSenderImpl createMailSender(MailAccount mailAccount) {
+    public static MailSenderContainer createMailSender(MailAccount mailAccount) {
+        final MailSenderContainer mailSenderContainer = new MailSenderContainer();
+        mailSenderContainer.setMailAccount(mailAccount);
+
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(mailAccount.getServerHost());
         mailSender.setPort(mailAccount.getServerPort());
@@ -69,7 +74,9 @@ public class MailUtil {
         p.put("mail.smtp.socketFactory.fallback", "false");
         p.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");//SSL加密连接
         mailSender.setJavaMailProperties(p);
-        return mailSender;
+
+        mailSenderContainer.setJavaMailSender(mailSender);
+        return mailSenderContainer;
     }
 
     /**
@@ -77,13 +84,13 @@ public class MailUtil {
      * @author 刘志新
      * @email  lzxorz@163.com
      */
-    public static JavaMailSenderImpl getMailSender(){
+    public static MailSenderContainer getMailSender(){
         if (!CollectionUtils.isEmpty(pool) && !CollectionUtils.isEmpty(ids) && pool.size()==ids.size()){
             if (!(currentIndex<ids.size())) currentIndex = 0;
             log.info("缓冲池获取MailSender...");
             return pool.get(ids.get(currentIndex++));
         }
-        log.info("获取MailSender失败...");
+        log.info("缓冲池获取MailSender失败...");
         return null;
     }
 
@@ -151,4 +158,16 @@ public class MailUtil {
         });
     }*/
 
+    public static class MailSenderContainer {
+        private JavaMailSenderImpl javaMailSender;
+        private MailAccount mailAccount;
+
+        public MailAccount getMailAccount() { return mailAccount; }
+
+        public void setMailAccount(MailAccount mailAccount) { this.mailAccount = mailAccount; }
+
+        public JavaMailSenderImpl getJavaMailSender() { return javaMailSender; }
+
+        public void setJavaMailSender(JavaMailSenderImpl javaMailSender) { this.javaMailSender = javaMailSender; }
+    }
 }

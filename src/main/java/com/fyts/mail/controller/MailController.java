@@ -1,6 +1,8 @@
 package com.fyts.mail.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.support.spring.annotation.FastJsonFilter;
+import com.alibaba.fastjson.support.spring.annotation.FastJsonView;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -9,6 +11,7 @@ import com.fyts.mail.common.constants.Constants;
 import com.fyts.mail.common.queue.MailQueue;
 import com.fyts.mail.common.util.Result;
 import com.fyts.mail.entity.Mail;
+import com.fyts.mail.entity.MailAccount;
 import com.fyts.mail.service.IMailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -25,7 +28,7 @@ import java.util.Date;
 @Api(tags ="邮件管理")
 @RestController
 @RequestMapping("/mail")
-public class mailController extends BaseController {
+public class MailController extends BaseController {
 
 	// @Reference(version = "1.0.0")
 	@Autowired
@@ -50,9 +53,12 @@ public class mailController extends BaseController {
 
 		return Result.ok("获取成功",page);
 	}
-	
+
 	@PostMapping
 	@ApiOperation(value ="新增邮件",httpMethod = "POST", notes = "注意状态参数")
+	@FastJsonView(exclude = {
+			@FastJsonFilter(clazz = Mail.class, props = {"mailSender"}),
+			@FastJsonFilter(clazz = MailAccount.class, props = {"createBy","createDate","updateBy","updateDate"})})
 	public Result save(@RequestBody @Validated Mail mail) {
 		if (!mail.verify()) {
 			return Result.error("参数缺失");

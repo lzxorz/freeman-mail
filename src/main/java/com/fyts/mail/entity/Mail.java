@@ -13,7 +13,8 @@ import com.fyts.mail.common.typehandler.StringArrayTypeHandler;
 import com.fyts.mail.common.util.MailUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.type.JdbcType;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -22,7 +23,6 @@ import org.springframework.util.CollectionUtils;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -126,12 +126,14 @@ public class Mail extends Model<Mail> {
      * @return
      */
     @JSONField(serialize = false)
-    public JavaMailSenderImpl getMailSender(){
+    public MailUtil.MailSenderContainer getMailSender(){
         if (sender !=null && StrUtil.isNotBlank(sender.getServerHost()) && StrUtil.isNotBlank(sender.getUsername()) && StrUtil.isNotBlank(sender.getPassword())){
             log.info("前端传入MailSender...");
             return MailUtil.createMailSender(sender);
         }
-        return MailUtil.getMailSender();
+        final MailUtil.MailSenderContainer mailSender = MailUtil.getMailSender();
+        if (null!=mailSender) sender = mailSender.getMailAccount();
+        return mailSender;
     }
 
     public boolean verify() {

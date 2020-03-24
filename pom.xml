@@ -38,7 +38,7 @@
         <dozer.version>5.5.1</dozer.version><!--对象深度克隆-->
         <poi.version>3.17</poi.version><!--hutool poi-->
         <xercesImpl.version>2.11.0</xercesImpl.version><!--hutool poi sax-->
-        <enjoy.version>4.2</enjoy.version><!--模板引擎-->
+        <enjoy.version>4.8</enjoy.version><!--模板引擎-->
         <pinyin4j.version>2.5.1</pinyin4j.version>
         <ip2region.version>1.7.2</ip2region.version>
         <hutool.version>4.5.6</hutool.version>
