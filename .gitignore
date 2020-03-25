@@ -1,3 +1,7 @@
 /D:/
 /target/
+.classpath
+.idea
+.project
+*.iml
 /.factorypath
