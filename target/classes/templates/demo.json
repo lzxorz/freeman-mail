@@ -1,9 +1,0 @@
-{
-    "name" : "demo",
-    "params" : [
-        {"type": "img", "cid": "img1", "resPath":"上传文件返回的路径"},
-        {"type": "img", "cid": "img2", "resPath":"上传文件返回的路径"},
-        {"type": "str", "label": "姓名", "key": "username", "value":""},
-        {"type": "str", "label": "性别", "key": "gender"}
-    ]
-}
